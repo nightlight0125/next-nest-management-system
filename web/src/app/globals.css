@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* 自定义滚动条样式 */
+.ant-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ant-menu::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.ant-menu::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+/* 优化菜单项过渡效果 */
+.ant-menu-item,
+.ant-menu-submenu-title {
+  transition: all 0.3s ease !important;
+}
