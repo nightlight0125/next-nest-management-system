@@ -1,0 +1,90 @@
+version: "3"
+
+services:
+  # Frontend Service (Next.js)
+  web:
+    build:
+      context: ./web # Directory containing frontend code
+      dockerfile: Dockerfile # Name of frontend Dockerfile
+    container_name: nextjs_web # Custom container name
+    ports:
+      - "3000:3000" # Map host port 3000 to container port 3000 default port for Next.js
+    env_file:
+      - ./web/.env # Frontend environment variables
+    depends_on:
+      - api # Start after backend service
+    networks:
+      - app-network
+
+  # Backend Service (Nest.js)
+  api:
+    build:
+      context: ./api # Directory containing backend code
+      dockerfile: Dockerfile # Name of backend Dockerfile
+    container_name: nestjs_api # Custom container name
+    restart: always
+    ports:
+      - "8000:8000" # Map host port 8000 to container port 8000 default port for Nest.js
+    env_file:
+      - ./api/.env # Backend environment variables
+    depends_on:
+      - mysql # Start after database service
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    restart: always
+    ports:
+      - "80:80" # Map host port 80 to container port 80 default port for HTTP
+      - "443:443" # Map host port 443 to container port 443 default port for HTTPS
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro # Nginx configuration file path
+      - /etc/letsencrypt:/etc/letsencrypt:ro # SSL certificate and key path
+    depends_on:
+      - web # Start after frontend service
+      - api # Start after backend service
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: DMr4f8uJBr!f # Root password
+      MYSQL_DATABASE: performance_system_database # Database name
+      MYSQL_USER: luluxiu # Create a normal user and password
+      MYSQL_PASSWORD: DMr4f8uJBr!f # Please modify to a strong password
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306" # Map host port 3306 to container port 3306
+    volumes:
+      - ./data:/var/lib/mysql # Data persistence storage
+      - ./conf/my.cnf:/etc/mysql/my.cnf # Configuration file mounting
+      - ./logs:/var/log/mysql # Log file mounting
+    networks:
+      - app-network
+
+  # Redis Service
+  redis:
+    image: redis:alpine 
+    container_name: redis_server 
+    restart: always
+    ports:
+      - "6379:6379" 
+    volumes:
+      - redis_data:/data 
+    depends_on:
+      - mysql # Ensure Redis starts after the database
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redis_data: # Define the redis_data volume here
